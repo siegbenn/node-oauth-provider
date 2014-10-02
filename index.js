@@ -25,14 +25,14 @@ app.use(bodyParser.json());
 
 app.oauth = oauthserver({
   model: require('./model'),
-  grants: ['authorization_code', 'password'],
+  grants: ['authorization_code', 'password', 'refresh_token'],
   debug: false
 });
 
 app.all('/oauth/token', app.oauth.grant());
 
 app.get('/', app.oauth.authorise(), function (req, res) {
-  res.send('Secret area');
+  res.send('Authorized');
 });
 
 app.use(app.oauth.errorHandler());

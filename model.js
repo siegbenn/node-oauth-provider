@@ -1,56 +1,19 @@
+/*
+// ==================================================
+                  Oauth Model Notes            
+
+  + Create a client record in mongoDB.
+  + Add the clientID to the authorizedClientIds.
+// ==================================================
+*/
+
 var mongoose = require('mongoose'),
   Schema = mongoose.Schema,
   model = module.exports;
 
-//
-// Schemas definitions
-//
-var OAuthAccessTokensSchema = new Schema({
-  accessToken: { type: String },
-  clientId: { type: String },
-  userId: { type: String },
-  expires: { type: Date }
-});
-
-var OAuthRefreshTokensSchema = new Schema({
-  refreshToken: { type: String },
-  clientId: { type: String },
-  userId: { type: String },
-  expires: { type: Date }
-});
-
-var OAuthClientsSchema = new Schema({
-  clientId: { type: String },
-  clientSecret: { type: String },
-  redirectUri: { type: String }
-});
-
-var OAuthUsersSchema = new Schema({
-  username: { type: String },
-  password: { type: String },
-  firstname: { type: String },
-  lastname: { type: String },
-  email: { type: String, default: '' }
-});
-
-mongoose.model('OAuthAccessTokens', OAuthAccessTokensSchema);
-mongoose.model('OAuthRefreshTokens', OAuthRefreshTokensSchema);
+// ================ Clients Model ===================
 mongoose.model('OAuthClients', OAuthClientsSchema);
-mongoose.model('OAuthUsers', OAuthUsersSchema);
-
-var OAuthAccessTokensModel = mongoose.model('OAuthAccessTokens'),
-  OAuthRefreshTokensModel = mongoose.model('OAuthRefreshTokens'),
-  OAuthClientsModel = mongoose.model('OAuthClients'),
-  OAuthUsersModel = mongoose.model('OAuthUsers');
-
-//
-// oauth2-server callbacks
-//
-model.getAccessToken = function (bearerToken, callback) {
-  console.log('in getAccessToken (bearerToken: ' + bearerToken + ')');
-
-  OAuthAccessTokensModel.findOne({ accessToken: bearerToken }, callback);
-};
+var OAuthClientsModel = mongoose.model('OAuthClients');
 
 model.getClient = function (clientId, clientSecret, callback) {
   console.log('in getClient (clientId: ' + clientId + ', clientSecret: ' + clientSecret + ')');
@@ -60,9 +23,8 @@ model.getClient = function (clientId, clientSecret, callback) {
   OAuthClientsModel.findOne({ clientId: clientId, clientSecret: clientSecret }, callback);
 };
 
-// This will very much depend on your setup, I wouldn't advise doing anything exactly like this but
-// it gives an example of how to use the method to resrict certain grant types
-var authorizedClientIds = ['bennett'];
+// Put your clientID here.
+var authorizedClientIds = ['changeThisClientId'];
 model.grantTypeAllowed = function (clientId, grantType, callback) {
   console.log('in grantTypeAllowed (clientId: ' + clientId + ', grantType: ' + grantType + ')');
 
@@ -71,6 +33,46 @@ model.grantTypeAllowed = function (clientId, grantType, callback) {
   }
 
   callback(false, true);
+};
+// ==================================================
+
+// ================= User Model =====================
+var OAuthUsersSchema = new Schema({
+  username: { type: String },
+  password: { type: String },
+  firstname: { type: String },
+  lastname: { type: String },
+  email: { type: String, default: '' }
+});
+
+mongoose.model('OAuthUsers', OAuthUsersSchema);
+var OAuthUsersModel = mongoose.model('OAuthUsers');
+
+
+model.getUser = function (username, password, callback) {
+  console.log('in getUser (username: ' + username + ', password: ' + password + ')');
+  if (password === null) {
+    return OAuthUsersModel.findOne({ username: username }, callback);
+  }
+  OAuthUsersModel.findOne({ username: username, password: password }, callback);
+};
+// ==================================================
+
+// ============== AccessToken Model =================
+var OAuthAccessTokensSchema = new Schema({
+  accessToken: { type: String },
+  clientId: { type: String },
+  userId: { type: String },
+  expires: { type: Date }
+});
+
+mongoose.model('OAuthAccessTokens', OAuthAccessTokensSchema);
+var OAuthAccessTokensModel = mongoose.model('OAuthAccessTokens');
+
+model.getAccessToken = function (bearerToken, callback) {
+  console.log('in getAccessToken (bearerToken: ' + bearerToken + ')');
+
+  OAuthAccessTokensModel.findOne({ accessToken: bearerToken }, callback);
 };
 
 model.saveAccessToken = function (token, clientId, expires, userId, callback) {
@@ -85,21 +87,25 @@ model.saveAccessToken = function (token, clientId, expires, userId, callback) {
 
   accessToken.save(callback);
 };
+// ==================================================
 
-/*
- * Required to support password grant type
- */
-model.getUser = function (username, password, callback) {
-  console.log('in getUser (username: ' + username + ', password: ' + password + ')');
-  if (password === null) {
-    return OAuthUsersModel.findOne({ username: username }, callback);
-  }
-  OAuthUsersModel.findOne({ username: username, password: password }, callback);
+// ============== RefreshToken Model ================
+var OAuthRefreshTokensSchema = new Schema({
+  refreshToken: { type: String },
+  clientId: { type: String },
+  userId: { type: String },
+  expires: { type: Date }
+});
+
+mongoose.model('OAuthRefreshTokens', OAuthRefreshTokensSchema);
+var OAuthRefreshTokensModel = mongoose.model('OAuthRefreshTokens');
+
+model.getRefreshToken = function (refreshToken, callback) {
+  console.log('in getRefreshToken (refreshToken: ' + refreshToken + ')');
+
+  OAuthRefreshTokensModel.findOne({ refreshToken: refreshToken }, callback);
 };
 
-/*
- * Required to support refreshToken grant type
- */
 model.saveRefreshToken = function (token, clientId, expires, userId, callback) {
   console.log('in saveRefreshToken (token: ' + token + ', clientId: ' + clientId +', userId: ' + userId + ', expires: ' + expires + ')');
 
@@ -113,8 +119,9 @@ model.saveRefreshToken = function (token, clientId, expires, userId, callback) {
   refreshToken.save(callback);
 };
 
-model.getRefreshToken = function (refreshToken, callback) {
-  console.log('in getRefreshToken (refreshToken: ' + refreshToken + ')');
-
-  OAuthRefreshTokensModel.findOne({ refreshToken: refreshToken }, callback);
-};
+var OAuthClientsSchema = new Schema({
+  clientId: { type: String },
+  clientSecret: { type: String },
+  redirectUri: { type: String }
+});
+// ==================================================
