@@ -26,7 +26,7 @@ app.use(bodyParser.json());
 app.oauth = oauthserver({
   model: require('./model'),
   grants: ['authorization_code', 'password'],
-  debug: true
+  debug: false
 });
 
 app.all('/oauth/token', app.oauth.grant());

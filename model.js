@@ -62,7 +62,7 @@ model.getClient = function (clientId, clientSecret, callback) {
 
 // This will very much depend on your setup, I wouldn't advise doing anything exactly like this but
 // it gives an example of how to use the method to resrict certain grant types
-var authorizedClientIds = ['bennett', 'toto', '1'];
+var authorizedClientIds = ['bennett'];
 model.grantTypeAllowed = function (clientId, grantType, callback) {
   console.log('in grantTypeAllowed (clientId: ' + clientId + ', grantType: ' + grantType + ')');
 
@@ -91,11 +91,10 @@ model.saveAccessToken = function (token, clientId, expires, userId, callback) {
  */
 model.getUser = function (username, password, callback) {
   console.log('in getUser (username: ' + username + ', password: ' + password + ')');
-
-  OAuthUsersModel.findOne({ username: username, password: password }, function(err, user) {
-    if(err) return callback(err);
-    callback(null, user._id);
-  });
+  if (password === null) {
+    return OAuthUsersModel.findOne({ username: username }, callback);
+  }
+  OAuthUsersModel.findOne({ username: username, password: password }, callback);
 };
 
 /*
