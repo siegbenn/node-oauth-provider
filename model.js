@@ -1,17 +1,40 @@
+// =============== Oauth Model Notes ===============
 /*
-// ==================================================
-                  Oauth Model Notes            
-
-  + Create a client record in mongoDB.
-  + Add the clientID to the authorizedClientIds.
-// ==================================================
+  * Create a client record in mongoDB.
+  * Add the clientID to the authorizedClientIds.
 */
+// =================================================
+
+// ================ Function list ==================
+/*
+  * Clients:
+  ** getClient
+  ** grantTypeAllowed
+
+  * Users:
+  ** getUser
+
+  * Access Tokens:
+  ** getAccessToken
+  ** saveAccessToken
+
+  * Refresh Tokens:
+  ** getRefreshToken
+  ** saveRefreshToken
+*/
+// =================================================
 
 var mongoose = require('mongoose'),
   Schema = mongoose.Schema,
   model = module.exports;
 
 // ================ Clients Model ===================
+var OAuthClientsSchema = new Schema({
+  clientId: { type: String },
+  clientSecret: { type: String },
+  redirectUri: { type: String }
+});
+
 mongoose.model('OAuthClients', OAuthClientsSchema);
 var OAuthClientsModel = mongoose.model('OAuthClients');
 
@@ -23,8 +46,8 @@ model.getClient = function (clientId, clientSecret, callback) {
   OAuthClientsModel.findOne({ clientId: clientId, clientSecret: clientSecret }, callback);
 };
 
-// Put your clientID here.
-var authorizedClientIds = ['changeThisClientId'];
+// Put the clientID here.
+var authorizedClientIds = ['bennett'];
 model.grantTypeAllowed = function (clientId, grantType, callback) {
   console.log('in grantTypeAllowed (clientId: ' + clientId + ', grantType: ' + grantType + ')');
 
@@ -118,10 +141,4 @@ model.saveRefreshToken = function (token, clientId, expires, userId, callback) {
 
   refreshToken.save(callback);
 };
-
-var OAuthClientsSchema = new Schema({
-  clientId: { type: String },
-  clientSecret: { type: String },
-  redirectUri: { type: String }
-});
 // ==================================================
